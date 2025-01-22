@@ -4,7 +4,7 @@ import config
 import downloader
 import concurrent.futures
 
-keywords = ['chung-khoan']
+keywords = []
 
 def main():
     logging.info("Bắt đầu quy trình crawl.")
@@ -27,4 +27,8 @@ def main():
     logging.info("Quy trình crawl hoàn tất.")
 
 if __name__ == "__main__":
+    keyword = input("Nhập từ khóa cần tìm: ")
+    for key in keyword.split(","):
+        keyword = key.strip()
+        keywords.append(keyword)
     main()
