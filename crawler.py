@@ -49,8 +49,11 @@ def get_contents(url):
         content = ' '.join(p.get_text(strip=True) for p in content_div.find_all('p')) if content_div else None
 
         # Lấy ngày đăng bài
-        date = soup.find('div',class_='timeandcatdetail').text.strip() if soup.find('div',class_='timeandcatdetail') else None
-
+        date_div = soup.find('div', class_='timeandcatdetail')
+        date = None
+        if date_div:
+            date_span = date_div.find('span', class_='time')  # Tìm thẻ span trong div
+            date = date_span.text.strip() if date_span else None
         return {
             'url': url,
             'title': title,

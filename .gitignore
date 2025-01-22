@@ -1,2 +1,4 @@
 contents
 crawler.log
+.gitignore
+pycache/

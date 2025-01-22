@@ -19,7 +19,7 @@ def main():
         if content:
             all_contents.append(content)
 
-    max_workers = 10
+    max_workers = 60
     logging.info(f"Bắt đầu tải xuống {len(all_contents)} bài viết với {max_workers} workers.")
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
         executor.map(downloader.download, all_contents)
