@@ -22,31 +22,40 @@ def get_all_urls(driver, keywords):
             break
         last_height = new_height
 
-        new_urls = get_urls(driver.current_url, keywords)
-        all_urls.update(new_urls)
+        # Lấy URL sau khi cuộn trang
+        page_urls = extract_urls(driver, keywords)
+        all_urls.update(page_urls)
 
     return list(all_urls)
 
-def get_urls(search_url, keywords, visited=None):
-    if visited is None:
-        visited = set()
+
+def extract_urls(driver, keywords):
+    urls = set()
+    html = driver.page_source
+    soup = BeautifulSoup(html, 'html.parser')
+
+    for link in soup.find_all('a', href=True):
+        article_url = link['href']
+        if any(keyword.lower() in article_url.lower() for keyword in keywords):
+            urls.add(article_url)
+
+    return list(urls)
+
+
+def get_urls(search_url, keywords):
     urls = []
 
-    try:
-        if search_url in visited:
-            return []
-        visited.add(search_url)
+    options = webdriver.ChromeOptions()
+    #options.add_argument("--remote-debugging-port=9222")
+    #options.add_argument("--window-size=1920x1080")
+    #options.add_argument("--disable-blink-features=AutomationControlled")
 
-        # Sử dụng get_all_urls để lấy tất cả các URL từ trang tìm kiếm
-        options = webdriver.ChromeOptions()
-        options.add_argument('--headless')
+    try:
         driver = webdriver.Chrome(options=options)
         driver.get(search_url)
 
-        # Lấy tất cả các URL bằng cách cuộn trang xuống
+        # Gọi hàm get_all_urls để lấy tất cả URL trên trang
         all_urls = get_all_urls(driver, keywords)
-
-        time.sleep(config.RATE_LIMIT_DELAY)
         logging.info(f"Tìm thấy {len(all_urls)} URL trong {search_url}")
 
         driver.quit()
@@ -59,17 +68,13 @@ def get_urls(search_url, keywords, visited=None):
         return []
 
 
-    except Exception as e:
-        logging.error(f"Lỗi khi crawl {search_url}: {e}")
-        if 'driver' in locals():
-            driver.quit()
-        return []
-
-
 def get_contents(url):
     try:
+        if not url.startswith("http"):
+            url = "https://cafebiz.vn" + url
         options = webdriver.ChromeOptions()
-        options.add_argument('--headless')  # Không cần cuộn trang nên có thể chạy headless
+        #options.add_argument('--headless')
+
         driver = webdriver.Chrome(options=options)
         driver.get(url)
 
@@ -106,3 +111,5 @@ def get_contents(url):
         if 'driver' in locals():
             driver.quit()
         return None
+
+
