@@ -19,25 +19,19 @@ def download(content):
             return
 
         # Xác định ngày đăng bài
-
-        if content.get('date') and content['date'] != "Không rõ ngày":
-            try:
-                article_date = datetime.strptime(content['date'], "%d/%m/%Y")
-            except ValueError:
-                article_date = datetime.today()
-        else:
-            article_date = datetime.today()
+        article_date = content.get('date', datetime.now().strftime('%Y-%m-%d'))
 
         article_title = content.get('title', 'Không có tiêu đề')
-        # Định dạng tên file theo tháng
+
+
         file_name = f"{article_date}_{article_title}.csv"
         file_path = os.path.join(config.folder_path, file_name)
 
-        # Chuyển đổi nội dung để đảm bảo đúng định dạng CSV
+
         escaped_content = {key: escape_csv_value(value) for key, value in content.items()}
         df = pd.DataFrame([escaped_content])
 
-        # Kiểm tra nếu file đã tồn tại nhưng trống
+
         file_exists = os.path.exists(file_path) and os.stat(file_path).st_size > 0
 
         # Nếu file đã tồn tại, đọc dữ liệu để kiểm tra trùng lặp
