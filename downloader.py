@@ -19,22 +19,20 @@ def download(content):
             return
 
         # Xác định ngày đăng bài
-        article_date = content.get('date', datetime.now().strftime('%Y-%m-%d'))
-
+        article_date = content.get('date', 'Không rõ ngày').format('%Y-%m-%d')
         article_title = content.get('title', 'Không có tiêu đề')
 
-
+        # Xây dựng đường dẫn file
         file_name = f"{article_date}_{article_title}.csv"
-        file_path = os.path.join(config.folder_path, file_name)
+        folder_path = config.folder_path
+        file_path = os.path.join(folder_path, file_name)
 
-
+        # Xử lý dữ liệu
         escaped_content = {key: escape_csv_value(value) for key, value in content.items()}
         df = pd.DataFrame([escaped_content])
 
-
         file_exists = os.path.exists(file_path) and os.stat(file_path).st_size > 0
 
-        # Nếu file đã tồn tại, đọc dữ liệu để kiểm tra trùng lặp
         if file_exists:
             existing_df = pd.read_csv(file_path, dtype=str)
             if content['url'] in existing_df['url'].values:
