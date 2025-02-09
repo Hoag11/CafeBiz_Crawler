@@ -14,8 +14,10 @@ Note: Sometimes the crawler will get error code 403. Trying to run the code agai
 
 ## Dependencies:
 ```sh
-pip install bs4
+pip install selenium
 pip install pandas
 pip install requests
 pip install fake_useragent
+pip install webdriver-manager
+
 ```

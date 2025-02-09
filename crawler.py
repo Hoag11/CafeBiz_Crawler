@@ -1,59 +1,89 @@
-import requests
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup
 import config
 import logging
+import time
+import os
 
-#crawl url
-def get_urls(url, keywords, visited=None):
-    if visited is None:
-        visited = set()
+def get_driver():
+    """Khởi tạo trình duyệt Selenium"""
+    options = Options()
+    options.add_argument("--headless")  # Chạy ở chế độ ẩn
+    options.add_argument("--disable-gpu")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--window-size=1920,1080")
+    options.add_argument("start-maximized")
 
-    try:
-        if url in visited:
-            return []
-        visited.add(url)
-        response = requests.get(url, headers=config.HEADER)
-        response.raise_for_status()
+    service = Service("chromedriver")  # Đảm bảo bạn có chromedriver trong PATH hoặc đặt đường dẫn tại đây
+    driver = webdriver.Chrome(service=service, options=options)
+    return driver
 
-        soup = BeautifulSoup(response.text, 'lxml')
-        urls = []
+def get_urls(search_url, keywords):
+    """Dùng Selenium để lấy tất cả bài viết từ trang tìm kiếm"""
+    driver = get_driver()
+    driver.get(search_url)
 
-        for loc in soup.find_all('loc'):
-            url = loc.text.strip()
-            if any(keyword in loc.text for keyword in keywords):
-                urls.append(loc.text)
+    wait = WebDriverWait(driver, 10)
 
-            elif url.endswith('.xml'):
-                urls.extend(get_urls(url, keywords, visited))
+    urls = set()
+    last_height = driver.execute_script("return document.body.scrollHeight")
 
-        logging.info(f'Tìm thấy {len(urls)} urls trong {url}')
-        return urls
+    while True:
+        # Cuộn xuống cuối trang
+        driver.find_element(By.TAG_NAME, "body").send_keys(Keys.END)
+        time.sleep(2)  # Chờ nội dung tải thêm
 
-    except Exception as e:
-        logging.error(f'Lỗi khi crawl {url}: {e}')
-        return []
+        # Lấy tất cả bài viết sau khi cuộn
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+        for item in soup.find_all('li', class_='item'):
+            link_tag = item.find('a', href=True)
+            if link_tag:
+                article_url = link_tag['href']
+                if any(keyword.lower() in article_url.lower() for keyword in keywords):
+                    urls.add(article_url)
 
-#crawl noi dung trang
+        # Kiểm tra nếu không còn nội dung mới để tải
+        new_height = driver.execute_script("return document.body.scrollHeight")
+        if new_height == last_height:
+            break
+        last_height = new_height
+
+    driver.quit()
+    logging.info(f"Tìm thấy {len(urls)} bài viết.")
+    return list(urls)
+
 def get_contents(url):
-    try:
-        response = requests.get(url, headers=config.HEADER)
-        response.raise_for_status()
+    """Dùng Selenium để lấy nội dung bài viết"""
+    driver = get_driver()
+    driver.get(url)
 
-        soup = BeautifulSoup(response.content, 'html.parser')
+    try:
+        wait = WebDriverWait(driver, 10)
+
+        # Chờ tiêu đề bài viết xuất hiện
+        wait.until(EC.presence_of_element_located((By.TAG_NAME, "h1")))
+
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
 
         # Lấy tiêu đề bài viết
-        title = soup.find('h1', class_='title').text.strip() if soup.find('h1', class_='title') else None
+        title_tag = soup.select_one('h1.title, h1, h2')
+        title = title_tag.text.strip() if title_tag else "Không có tiêu đề"
 
-        # Lấy nội dung từ các thẻ <p> trong thẻ div class="content"
-        content_div = soup.find('div', class_='detail-content')
-        content = ' '.join(p.get_text(strip=True) for p in content_div.find_all('p')) if content_div else None
+        # Lấy nội dung bài viết
+        content_div = soup.select_one('div.detail-content')
+        content = " ".join(p.get_text(strip=True) for p in content_div.find_all('p')) if content_div else "Không có nội dung"
 
         # Lấy ngày đăng bài
-        date_div = soup.find('div', class_='timeandcatdetail')
-        date = None
-        if date_div:
-            date_span = date_div.find('span', class_='time')  # Tìm thẻ span trong div
-            date = date_span.text.strip() if date_span else None
+        date_tag = soup.select_one('div.timeandcatdetail span.time, time, span.date')
+        date = date_tag.text.strip() if date_tag else "Không rõ ngày"
+
+        driver.quit()
         return {
             'url': url,
             'title': title,
@@ -62,4 +92,5 @@ def get_contents(url):
         }
     except Exception as e:
         logging.error(f"Lỗi khi xử lý URL {url}: {e}")
+        driver.quit()
         return None

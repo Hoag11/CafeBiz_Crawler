@@ -1,10 +1,16 @@
 import logging
 from fake_useragent import UserAgent
 import os
+from urllib.parse import urlencode
 
-url = 'https://cafebiz.vn/sitemap.xml'
+def get_search_url(keywords):
+    if not keywords:
+        logging.warning("Danh sách từ khóa rỗng! Không thể tạo URL.")
+        return None
+    query = urlencode({"keywords": ",".join(keywords)})
+    return f'https://cafebiz.vn/search.chn?{query}'
 
-#logging configuration
+# Cấu hình logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
@@ -14,7 +20,7 @@ logging.basicConfig(
     ]
 )
 
-#random User-Agent configuration
+# Cấu hình User-Agent ngẫu nhiên
 ua = UserAgent()
 HEADER = {
     'User-Agent': ua.random,
@@ -22,7 +28,7 @@ HEADER = {
     'Connection': 'keep-alive',
 }
 
-#file path configuration
+# Cấu hình thư mục lưu dữ liệu
 folder_path = 'contents'
 if not os.path.exists(folder_path):
     os.makedirs(folder_path)

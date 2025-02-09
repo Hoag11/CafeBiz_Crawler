@@ -9,7 +9,12 @@ keywords = []
 def main():
     logging.info("Bắt đầu quy trình crawl.")
 
-    urls = crawler.get_urls(config.url, keywords=keywords)
+    search_url = config.get_search_url(keywords)
+    if not search_url:
+        logging.error("Không có URL hợp lệ để crawl. Dừng chương trình.")
+        return
+
+    urls = crawler.get_urls(search_url, keywords=keywords)
 
     all_contents = []
 
@@ -19,8 +24,9 @@ def main():
         if content:
             all_contents.append(content)
 
-    max_workers = 60
+    max_workers = 30
     logging.info(f"Bắt đầu tải xuống {len(all_contents)} bài viết với {max_workers} workers.")
+
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
         executor.map(downloader.download, all_contents)
 
