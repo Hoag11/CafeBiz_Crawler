@@ -32,3 +32,5 @@ HEADER = {
 folder_path = 'contents'
 if not os.path.exists(folder_path):
     os.makedirs(folder_path)
+
+RATE_LIMIT_DELAY = 1

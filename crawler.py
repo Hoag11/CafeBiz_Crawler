@@ -5,7 +5,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import time
 import logging
-from urllib.parse import urljoin
+import config
+
 
 def get_all_urls(driver, keywords):
     all_urls = set()
@@ -45,6 +46,7 @@ def get_urls(search_url, keywords, visited=None):
         # Lấy tất cả các URL bằng cách cuộn trang xuống
         all_urls = get_all_urls(driver, keywords)
 
+        time.sleep(config.RATE_LIMIT_DELAY)
         logging.info(f"Tìm thấy {len(all_urls)} URL trong {search_url}")
 
         driver.quit()
