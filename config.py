@@ -10,6 +10,14 @@ def get_search_url(keywords):
     query = urlencode({"keywords": ",".join(keywords)})
     return f'https://cafebiz.vn/search.chn?{query}'
 
+
+def get_vneconomy_url(keywords):
+    if not keywords:
+        logging.warning("Danh sách từ khóa rỗng! Không thể tạo URL.")
+        return None
+    query = urlencode({"q": ",".join(keywords)})
+    return f'https://vneconomy.vn/tim-kiem.htm?q={query}'
+
 # Cấu hình logging
 logging.basicConfig(
     level=logging.INFO,

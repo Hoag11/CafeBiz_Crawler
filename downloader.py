@@ -3,7 +3,6 @@ import logging
 import os
 import pandas as pd
 import csv
-from datetime import datetime
 
 def escape_csv_value(value):
     if isinstance(value, str):

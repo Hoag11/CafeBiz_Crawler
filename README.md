@@ -19,5 +19,6 @@ pip install pandas
 pip install requests
 pip install fake_useragent
 pip install webdriver-manager
+pip install bs4
 
 ```
