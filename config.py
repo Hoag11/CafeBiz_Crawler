@@ -16,7 +16,7 @@ def get_vneconomy_url(keywords):
         logging.warning("Danh sách từ khóa rỗng! Không thể tạo URL.")
         return None
     query = urlencode({"q": ",".join(keywords)})
-    return f'https://vneconomy.vn/tim-kiem.htm?q={query}'
+    return f'https://vneconomy.vn/tim-kiem.htm?{query}'
 
 # Cấu hình logging
 logging.basicConfig(

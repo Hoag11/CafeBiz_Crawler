@@ -18,7 +18,7 @@ def get_all_urls(driver, keywords):
         time.sleep(scroll_pause_time)
 
         try:
-            more_button = driver.find_element(By.CSS_SELECTOR, "div.list__viewmore a.more")
+            more_button = driver.find_element(By.CSS_SELECTOR, "div.list__viewmore a.page-link")
             if more_button.is_displayed():
                 ActionChains(driver).move_to_element(more_button).click().perform()
                 time.sleep(scroll_pause_time)
@@ -41,7 +41,8 @@ def extract_urls(driver, keywords):
     html = driver.page_source
     soup = BeautifulSoup(html, 'html.parser')
 
-    for link in soup.find_all('a', href=True):
+    content_div = soup.select_one('div.contentSearch')
+    for link in content_div('a', href=True):
         article_url = link['href']
         if any(keyword.lower() in article_url.lower() for keyword in keywords):
             urls.add(article_url)
@@ -78,7 +79,7 @@ def get_urls(search_url, keywords):
 def get_contents(url):
     try:
         if not url.startswith("http"):
-            url = "https://cafebiz.vn" + url
+            url = "https://vneconomy.vn/" + url
         options = webdriver.ChromeOptions()
         options.add_argument('--headless')
         driver = webdriver.Chrome(options=options)

@@ -22,7 +22,7 @@ def download(content):
         article_title = content.get('title', 'Không có tiêu đề')
 
         # Xây dựng đường dẫn file
-        file_name = f"{article_date}_{article_title}.csv"
+        file_name = f"{article_date}_{article_title[:200]}.csv"
         folder_path = config.folder_path
         file_path = os.path.join(folder_path, file_name)
 
