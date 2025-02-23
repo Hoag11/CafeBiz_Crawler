@@ -7,7 +7,6 @@ from selenium.webdriver.common.action_chains import ActionChains
 import time
 import logging
 import re
-import config
 
 def get_all_urls(driver, keywords):
     all_urls = set()
@@ -19,7 +18,7 @@ def get_all_urls(driver, keywords):
         time.sleep(scroll_pause_time)
 
         try:
-            more_button = driver.find_element(By.CSS_SELECTOR, "div.list__viewmore a.page-link")
+            more_button = driver.find_element(By.CSS_SELECTOR, "div.list__viewmore a.more")
             if more_button.is_displayed():
                 ActionChains(driver).move_to_element(more_button).click().perform()
                 time.sleep(scroll_pause_time)
@@ -42,25 +41,27 @@ def extract_urls(driver, keywords):
     html = driver.page_source
     soup = BeautifulSoup(html, 'html.parser')
 
-    content_div = soup.select_one('div.contentSearch')
-    for link in content_div('a', href=True):
+    for link in soup.find_all('a', href=True):
         article_url = link['href']
         if any(keyword.lower() in article_url.lower() for keyword in keywords):
             urls.add(article_url)
 
     return list(urls)
 
-
 def get_urls(search_url, keywords):
     urls = []
 
     options = webdriver.ChromeOptions()
     options.add_argument('--headless')
-    options.add_argument(f"user-agent={config.HEADER['User-Agent']}")
+    #options.add_argument("--remote-debugging-port=9222")
+    #options.add_argument("--window-size=1920x1080")
+    #options.add_argument("--disable-blink-features=AutomationControlled")
+
     try:
         driver = webdriver.Chrome(options=options)
         driver.get(search_url)
 
+        # Gọi hàm get_all_urls để lấy tất cả URL trên trang
         all_urls = get_all_urls(driver, keywords)
         logging.info(f"Tìm thấy {len(all_urls)} URL trong {search_url}")
 
@@ -77,16 +78,15 @@ def get_urls(search_url, keywords):
 def get_contents(url):
     try:
         if not url.startswith("http"):
-            url = "https://vneconomy.vn" + url
+            url = "https://cafebiz.vn" + url
         options = webdriver.ChromeOptions()
         options.add_argument('--headless')
-        options.add_argument(f"user-agent={config.HEADER['User-Agent']}")
         driver = webdriver.Chrome(options=options)
         driver.get(url)
 
         try:
-            WebDriverWait(driver, 15).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, "div.detail__content"))
+            WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, "div.detail-content"))
             )
         except:
             logging.warning(f"Timeout waiting for content to load on {url}")
@@ -104,7 +104,6 @@ def get_contents(url):
         date_tag = soup.select_one('div.detail__meta span.time, time, span.date')
         date = date_tag.text.strip() if date_tag else "Không rõ ngày"
         date = re.sub(r'[/]', '-', date)
-
         driver.quit()
         return {
             'url': url,
@@ -118,4 +117,5 @@ def get_contents(url):
         if 'driver' in locals():
             driver.quit()
         return None
+
 
