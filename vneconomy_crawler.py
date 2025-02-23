@@ -7,6 +7,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 import time
 import logging
 import re
+import config
 
 def get_all_urls(driver, keywords):
     all_urls = set()
@@ -53,10 +54,7 @@ def get_urls(search_url, keywords):
 
     options = webdriver.ChromeOptions()
     options.add_argument('--headless')
-    #options.add_argument("--remote-debugging-port=9222")
-    #options.add_argument("--window-size=1920x1080")
-    #options.add_argument("--disable-blink-features=AutomationControlled")
-
+    options.add_argument(f'user-agent={config.HEADER["User-Agent"]}')
     try:
         driver = webdriver.Chrome(options=options)
         driver.get(search_url)
@@ -81,6 +79,7 @@ def get_contents(url):
             url = "https://cafebiz.vn" + url
         options = webdriver.ChromeOptions()
         options.add_argument('--headless')
+        options.add_argument(f'user-agent={config.HEADER["User-Agent"]}')
         driver = webdriver.Chrome(options=options)
         driver.get(url)
 
