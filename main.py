@@ -49,6 +49,9 @@ def main(choice):
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
         executor.map(lambda content: downloader.download(content), all_contents)
 
+    logging.info("Hoàn tất tải xuống, bắt đầu tổng hợp file.")
+    downloader.merge_and_cleanup()
+
     logging.info("Quy trình crawl hoàn tất.")
 
 
